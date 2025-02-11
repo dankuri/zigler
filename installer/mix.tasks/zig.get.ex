@@ -5,10 +5,23 @@ defmodule Zig.Get do
     :system_architecture
     |> :erlang.system_info()
     |> to_string
+    |> handle_windows()
     |> String.split("-")
     |> decode_os_info()
   end
 
+  defp handle_windows("win32") do
+    case System.get_env("PROCESSOR_ARCHITECTURE") do
+      "AMD64" -> "x86_64-windows"
+      "ARM64" -> "aarc64-windows"
+      "X86" -> "x86-windows"
+      other -> other
+    end
+  end
+
+  defp handle_windows(system_info), do: system_info
+
+  defp decode_os_info([arch, "windows"]), do: {"windows", arch}
   defp decode_os_info([arch, "apple" | _]), do: {"macos", arch}
   defp decode_os_info([arch, _vendor, os | _]), do: {os, arch}
 end
